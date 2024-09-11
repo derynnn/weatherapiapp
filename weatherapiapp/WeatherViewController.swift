@@ -10,22 +10,23 @@ import UIKit
 class WeatherViewController: UIViewController {
 
     // MARK: - UI Elements
-    
     let cityTextField = UITextField()
     let searchButton = UIButton(type: .system)
     let resultLabel = UILabel()
 
+    // MARK: - Services
+    let networkManager: NetworkManaging = NetworkManager()
+
     // MARK: - View Lifecycle
-    
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
-
         setupUI()
     }
+
     // MARK: - Setup UI
-    
     private func setupUI() {
+        view.backgroundColor = .white
+        
         let headerLabel = UILabel()
         headerLabel.text = "Weather"
         headerLabel.font = UIFont.systemFont(ofSize: 24, weight: .bold)
@@ -74,7 +75,6 @@ class WeatherViewController: UIViewController {
     }
 
     // MARK: - Actions
-    
     @objc private func searchButtonTapped() {
         guard let cityName = cityTextField.text, !cityName.isEmpty else {
             resultLabel.text = "Please enter a city name."
@@ -84,41 +84,21 @@ class WeatherViewController: UIViewController {
         fetchWeather(for: cityName)
     }
 
-    // MARK: - Networking
-    
+    // MARK: - Fetch Weather
     private func fetchWeather(for city: String) {
-        let apiKey = "3ab42858a5c7d89f7e85f6b7d9bf8979"
-        let urlString = "https://api.openweathermap.org/data/2.5/weather?q=\(city)&appid=\(apiKey)&units=metric"
-        guard let url = URL(string: urlString) else { return }
-
-        let task = URLSession.shared.dataTask(with: url) { data, response, error in
-            guard let data = data, error == nil else {
-                DispatchQueue.main.async {
-                    self.resultLabel.text = "Failed to fetch data."
-                }
-                return
-            }
-
-            do {
-                if let json = try JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? [String: Any],
-                   let main = json["main"] as? [String: Any],
-                   let temp = main["temp"] as? Double {
-
-                    DispatchQueue.main.async {
-                        self.resultLabel.text = "Temperature in \(city): \(temp)°C"
+        networkManager.fetchWeather(for: city) { [weak self] result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let temperature):
+                    self?.resultLabel.text = "Temperature in \(city): \(temperature)°C"
+                case .failure(let error):
+                    if let networkError = error as? NetworkError {
+                        self?.resultLabel.text = networkError.localizedDescription
+                    } else {
+                        self?.resultLabel.text = "An error occurred: \(error.localizedDescription)"
                     }
-                } else {
-                    DispatchQueue.main.async {
-                        self.resultLabel.text = "City not found."
-                    }
-                }
-            } catch {
-                DispatchQueue.main.async {
-                    self.resultLabel.text = "Failed to parse data."
                 }
             }
         }
-
-        task.resume()
     }
 }
