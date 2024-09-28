@@ -13,6 +13,9 @@ class WeatherViewController: UIViewController {
     let cityTextField = UITextField()
     let searchButton = UIButton(type: .system)
     let resultLabel = UILabel()
+    
+    // MARK: - Services
+    let weatherService = WeatherService()
 
     // MARK: - Services
     let networkManager: NetworkManaging = NetworkManager()
@@ -39,6 +42,7 @@ class WeatherViewController: UIViewController {
             headerLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor)
         ])
 
+        // TextField
         cityTextField.placeholder = "Enter city name"
         cityTextField.borderStyle = .roundedRect
         view.addSubview(cityTextField)
@@ -50,6 +54,7 @@ class WeatherViewController: UIViewController {
             cityTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -100)
         ])
 
+        // Search Button
         searchButton.setTitle("Search", for: .normal)
         searchButton.addTarget(self, action: #selector(searchButtonTapped), for: .touchUpInside)
         view.addSubview(searchButton)
@@ -61,6 +66,7 @@ class WeatherViewController: UIViewController {
             searchButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
         ])
 
+        // Result Label
         resultLabel.font = UIFont.systemFont(ofSize: 18)
         resultLabel.numberOfLines = 0
         resultLabel.textAlignment = .center
